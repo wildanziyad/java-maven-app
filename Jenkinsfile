@@ -1,35 +1,33 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven-app'
+    }
 
     stages {
         stage('Test') {
             steps {
-                script {
-                    echo "Testing the application..."
-                    echo "Executing pipeline for branch ${BRANCH_NAME}" 
-                }
+                echo "Testing the application..."
+                echo "Executing pipeline for branch ${env.BRANCH_NAME}"
             }
         }
 
         stage('Build') {
             when {
-                expression { BRANCH_NAME == 'main' } 
+                expression { env.BRANCH_NAME == 'main' }
             }
             steps {
-                script {
-                    echo "Building the application..."
-                }
+                sh 'mvn clean package'
+                echo "Building the application..."
             }
         }
 
         stage('Deploy') {
             when {
-                expression { BRANCH_NAME == 'main' }
+                expression { env.BRANCH_NAME == 'main' }
             }
             steps {
-                script {
-                    echo "Deploying the application..."
-                }
+                echo "Deploying the application..."
             }
         }
     }
