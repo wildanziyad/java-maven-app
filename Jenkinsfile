@@ -1,35 +1,35 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'maven-3.9'
+    }
+
     stages {
-        stage('Test') {
+        stage('Build Jar') {
             steps {
-                script {
-                    echo "Testing the application..."
-                    echo "Executing pipeline for branch ${BRANCH_NAME}" 
-                }
+                sh 'mvn package'
             }
         }
 
-        stage('Build') {
-            when {
-                expression { BRANCH_NAME == 'main' } 
-            }
+        stage('Build Image') {
             steps {
                 script {
-                    echo "Building the application..."
+                    echo 'Building the Docker image...'
+                    withCredentials([string(credentialsId: 'docker-hub-credential', variable: 'PASSWORD')]) {
+                        sh '''
+                        echo $PASSWORD | docker login -u dockerhub-user --password-stdin
+                        docker build -t your-dockerhub-username/your-image:tag .
+                        docker push your-dockerhub-username/your-image:tag
+                        '''
+                    }
                 }
             }
         }
 
         stage('Deploy') {
-            when {
-                expression { BRANCH_NAME == 'main' }
-            }
             steps {
-                script {
-                    echo "Deploying the application..."
-                }
+                echo 'Deploying the application...'
             }
         }
     }
